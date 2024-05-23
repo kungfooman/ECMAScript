@@ -172,7 +172,6 @@ async function runDtsBundler(entrypoint, output) {
  * @param {BundlerTaskOptions} [taskOptions]
  *
  * @typedef BundlerTaskOptions
- * @property {boolean} [exportIsTsObject]
  * @property {boolean} [treeShaking]
  * @property {boolean} [usePublicAPI]
  * @property {() => void} [onWatchRebuild]
@@ -180,17 +179,15 @@ async function runDtsBundler(entrypoint, output) {
 function createBundler(entrypoint, outfile, taskOptions = {}) {
     const getOptions = memoize(async () => {
         const copyright = await getCopyrightHeader();
-        const banner = taskOptions.exportIsTsObject ? "var ts = {}; ((module) => {" : "";
-
         /** @type {esbuild.BuildOptions} */
         const options = {
             entryPoints: [entrypoint],
-            banner: { js: copyright + banner },
+            banner: { js: copyright },
             bundle: true,
             outfile,
             platform: "node",
-            target: ["es2020", "node14.17"],
-            format: "cjs",
+            target: ["es2020"],
+            format: "esm",
             sourcemap: "linked",
             sourcesContent: false,
             treeShaking: taskOptions.treeShaking,
@@ -198,7 +195,6 @@ function createBundler(entrypoint, outfile, taskOptions = {}) {
             logLevel: "warning",
             // legalComments: "none", // If we add copyright headers to the source files, uncomment.
         };
-
         if (taskOptions.usePublicAPI) {
             options.external = ["./typescript.js"];
             options.plugins = options.plugins || [];
@@ -211,55 +207,6 @@ function createBundler(entrypoint, outfile, taskOptions = {}) {
                 },
             });
         }
-
-        if (taskOptions.exportIsTsObject) {
-            // Monaco bundles us as ESM by wrapping our code with something that defines module.exports
-            // but then does not use it, instead using the `ts` variable. Ensure that if we think we're CJS
-            // that we still set `ts` to the module.exports object.
-            options.footer = { js: `})(typeof module !== "undefined" && module.exports ? module : { exports: ts });\nif (typeof module !== "undefined" && module.exports) { ts = module.exports; }` };
-
-            // esbuild converts calls to "require" to "__require"; this function
-            // calls the real require if it exists, or throws if it does not (rather than
-            // throwing an error like "require not defined"). But, since we want typescript
-            // to be consumable by other bundlers, we need to convert these calls back to
-            // require so our imports are visible again.
-            //
-            // To fix this, we redefine "require" to a name we're unlikely to use with the
-            // same length as "require", then replace it back to "require" after bundling,
-            // ensuring that source maps still work.
-            //
-            // See: https://github.com/evanw/esbuild/issues/1905
-            const require = "require";
-            const fakeName = "Q".repeat(require.length);
-            const fakeNameRegExp = new RegExp(fakeName, "g");
-            options.define = { [require]: fakeName };
-
-            // For historical reasons, TypeScript does not set __esModule. Hack esbuild's __toCommonJS to be a noop.
-            // We reference `__copyProps` to ensure the final bundle doesn't have any unreferenced code.
-            const toCommonJsRegExp = /var __toCommonJS .*/;
-            const toCommonJsRegExpReplacement = "var __toCommonJS = (mod) => (__copyProps, mod); // Modified helper to skip setting __esModule.";
-
-            options.plugins = options.plugins || [];
-            options.plugins.push(
-                {
-                    name: "post-process",
-                    setup: build => {
-                        build.onEnd(async () => {
-                            let contents = await fs.promises.readFile(outfile, "utf-8");
-                            contents = contents.replace(fakeNameRegExp, require);
-                            let matches = 0;
-                            contents = contents.replace(toCommonJsRegExp, () => {
-                                matches++;
-                                return toCommonJsRegExpReplacement;
-                            });
-                            assert(matches === 1, "Expected exactly one match for __toCommonJS");
-                            await fs.promises.writeFile(outfile, contents);
-                        });
-                    },
-                },
-            );
-        }
-
         return options;
     });
 
@@ -404,7 +351,6 @@ const { main: services, build: buildServices, watch: watchServices } = entrypoin
     builtEntrypoint: "./built/local/typescript/typescript.js",
     output: "./built/local/typescript.js",
     mainDeps: [generateLibs],
-    bundlerOptions: { exportIsTsObject: true },
 });
 export { services, watchServices };
 
