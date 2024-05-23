@@ -353,7 +353,7 @@ function createNode<TKind extends SyntaxKind>(kind: TKind, pos: number, end: num
     return node;
 }
 
-class NodeObject<TKind extends SyntaxKind> implements Node {
+export class NodeObject<TKind extends SyntaxKind> implements Node {
     public kind: TKind;
     public pos: number;
     public end: number;
@@ -546,7 +546,7 @@ function createSyntaxList(nodes: NodeArray<Node>, parent: Node): Node {
     return list;
 }
 
-class TokenOrIdentifierObject<TKind extends SyntaxKind> implements Node {
+export class TokenOrIdentifierObject<TKind extends SyntaxKind> implements Node {
     public kind: TKind;
     public pos: number;
     public end: number;
@@ -635,7 +635,7 @@ class TokenOrIdentifierObject<TKind extends SyntaxKind> implements Node {
     }
 }
 
-class SymbolObject implements Symbol {
+export class SymbolObject implements Symbol {
     flags: SymbolFlags;
     escapedName: __String;
     declarations?: Declaration[];
@@ -769,13 +769,13 @@ class SymbolObject implements Symbol {
     }
 }
 
-class TokenObject<TKind extends SyntaxKind> extends TokenOrIdentifierObject<TKind> implements Token<TKind> {
+export class TokenObject<TKind extends SyntaxKind> extends TokenOrIdentifierObject<TKind> implements Token<TKind> {
     constructor(kind: TKind, pos: number, end: number) {
         super(kind, pos, end);
     }
 }
 
-class IdentifierObject extends TokenOrIdentifierObject<SyntaxKind.Identifier> implements Identifier {
+export class IdentifierObject extends TokenOrIdentifierObject<SyntaxKind.Identifier> implements Identifier {
     public escapedText!: __String;
     declare _primaryExpressionBrand: any;
     declare _memberExpressionBrand: any;
@@ -796,7 +796,7 @@ class IdentifierObject extends TokenOrIdentifierObject<SyntaxKind.Identifier> im
     }
 }
 
-class PrivateIdentifierObject extends TokenOrIdentifierObject<SyntaxKind.PrivateIdentifier> implements PrivateIdentifier {
+export class PrivateIdentifierObject extends TokenOrIdentifierObject<SyntaxKind.PrivateIdentifier> implements PrivateIdentifier {
     public escapedText!: __String;
     declare _primaryExpressionBrand: any;
     declare _memberExpressionBrand: any;
@@ -813,7 +813,7 @@ class PrivateIdentifierObject extends TokenOrIdentifierObject<SyntaxKind.Private
     }
 }
 
-class TypeObject implements Type {
+export class TypeObject implements Type {
     checker: TypeChecker;
     flags: TypeFlags;
     objectFlags?: ObjectFlags;
@@ -911,7 +911,7 @@ class TypeObject implements Type {
     }
 }
 
-class SignatureObject implements Signature {
+export class SignatureObject implements Signature {
     flags: SignatureFlags;
     checker: TypeChecker;
     declaration!: SignatureDeclaration;
@@ -1035,7 +1035,7 @@ function findBaseOfDeclaration<T>(checker: TypeChecker, declaration: Declaration
     });
 }
 
-class SourceFileObject extends NodeObject<SyntaxKind.SourceFile> implements SourceFile {
+export class SourceFileObject extends NodeObject<SyntaxKind.SourceFile> implements SourceFile {
     declare _declarationBrand: any;
     declare _localsContainerBrand: any;
     public fileName!: string;
@@ -1279,7 +1279,7 @@ class SourceFileObject extends NodeObject<SyntaxKind.SourceFile> implements Sour
     }
 }
 
-class SourceMapSourceObject implements SourceMapSource {
+export class SourceMapSourceObject implements SourceMapSource {
     fileName: string;
     text: string;
     skipTrivia?: ((pos: number) => number) | undefined;
@@ -1367,7 +1367,7 @@ export function getSupportedCodeFixes() {
     return codefix.getSupportedErrorCodes();
 }
 
-class SyntaxTreeCache {
+export class SyntaxTreeCache {
     // For our syntactic only features, we also keep a cache of the syntax tree for the
     // currently edited file.
     private currentFileName: string | undefined;
@@ -1507,7 +1507,7 @@ const NoopCancellationToken: CancellationToken = {
     throwIfCancellationRequested: noop,
 };
 
-class CancellationTokenObject implements CancellationToken {
+export class CancellationTokenObject implements CancellationToken {
     constructor(private cancellationToken: HostCancellationToken) {
     }
 

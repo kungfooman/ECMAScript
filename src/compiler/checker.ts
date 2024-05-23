@@ -51629,7 +51629,7 @@ interface NodeBuilderContext {
     bundled: boolean;
 }
 
-class SymbolTrackerImpl implements SymbolTracker {
+export class SymbolTrackerImpl implements SymbolTracker {
     moduleResolverHost: ModuleSpecifierResolutionHost & { getCommonSourceDirectory(): string; } | undefined = undefined;
     context: NodeBuilderContext;
 
