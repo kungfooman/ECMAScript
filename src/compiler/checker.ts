@@ -1504,7 +1504,6 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     var syntacticNodeBuilder = createSyntacticTypeNodeBuilder(compilerOptions, {
         isEntityNameVisible,
         isExpandoFunctionDeclaration,
-        isNonNarrowedBindableName,
         getAllAccessorDeclarations: getAllAccessorDeclarationsForDeclaration,
         requiresAddingImplicitUndefined,
         isUndefinedIdentifierExpression(node: Identifier) {
@@ -6086,6 +6085,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                     return result;
                 }
             }
+            context.tracker.reportInferenceFallback(existing);
             return undefined;
         }
 
@@ -8302,6 +8302,10 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                     // If the symbol is found both in declaration scope and in current scope then it shoudl point to the same reference
                     (symAtLocation && sym && !getSymbolIfSameReference(getExportSymbolOfValueSymbolIfExported(symAtLocation), sym))
                 ) {
+                    // In isolated declaration we will not do rest parameter expansion so there is no need to report on these.
+                    if (symAtLocation !== unknownSymbol) {
+                        context.tracker.reportInferenceFallback(node);
+                    }
                     introducesError = true;
                     return { introducesError, node, sym };
                 }
@@ -8322,6 +8326,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                     !isDeclarationName(node) &&
                     isSymbolAccessible(sym, context.enclosingDeclaration, meaning, /*shouldComputeAliasesToMakeVisible*/ false).accessibility !== SymbolAccessibility.Accessible
                 ) {
+                    context.tracker.reportInferenceFallback(node);
                     introducesError = true;
                 }
                 else {
@@ -49118,25 +49123,6 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         }
         return false;
     }
-    function isNonNarrowedBindableName(node: ComputedPropertyName) {
-        if (!hasBindableName(node.parent)) {
-            return false;
-        }
-
-        const expression = node.expression;
-        if (!isEntityNameExpression(expression)) {
-            return true;
-        }
-
-        const type = getTypeOfExpression(expression);
-        const symbol = getSymbolAtLocation(expression);
-        if (!symbol) {
-            return false;
-        }
-        // Ensure not type narrowing
-        const declaredType = getTypeOfSymbol(symbol);
-        return declaredType === type;
-    }
 
     function literalTypeToNode(type: FreshableType, enclosing: Node, tracker: SymbolTracker): Expression {
         const enumResult = type.flags & TypeFlags.EnumLike ? nodeBuilder.symbolToExpression(type.symbol, SymbolFlags.Value, enclosing, /*flags*/ undefined, tracker)
@@ -49262,7 +49248,6 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 return node && getExternalModuleFileFromDeclaration(node);
             },
             isLiteralConstDeclaration,
-            isNonNarrowedBindableName,
             isLateBound: (nodeIn: Declaration): nodeIn is LateBoundDeclaration => {
                 const node = getParseTreeNode(nodeIn, isDeclaration);
                 const symbol = node && getSymbolOfDeclaration(node);
