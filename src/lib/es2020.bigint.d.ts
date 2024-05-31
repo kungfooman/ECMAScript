@@ -351,7 +351,7 @@ interface BigInt64Array {
     subarray(begin?: number, end?: number): BigInt64Array;
 
     /** Converts the array to a string by using the current locale. */
-    toLocaleString(): string;
+    toLocaleString(locales?: string | string[], options?: Intl.NumberFormatOptions): string;
 
     /** Returns a string representation of the array. */
     toString(): string;
@@ -371,9 +371,9 @@ interface BigInt64Array {
 
 interface BigInt64ArrayConstructor {
     readonly prototype: BigInt64Array;
-    new(length?: number): BigInt64Array;
-    new(array: Iterable<bigint>): BigInt64Array;
-    new(buffer: ArrayBufferLike, byteOffset?: number, length?: number): BigInt64Array;
+    new (length?: number): BigInt64Array;
+    new (array: Iterable<bigint>): BigInt64Array;
+    new (buffer: ArrayBufferLike, byteOffset?: number, length?: number): BigInt64Array;
 
     /** The size in bytes of each element in the array. */
     readonly BYTES_PER_ELEMENT: number;
@@ -623,7 +623,7 @@ interface BigUint64Array {
     subarray(begin?: number, end?: number): BigUint64Array;
 
     /** Converts the array to a string by using the current locale. */
-    toLocaleString(): string;
+    toLocaleString(locales?: string | string[], options?: Intl.NumberFormatOptions): string;
 
     /** Returns a string representation of the array. */
     toString(): string;
@@ -643,9 +643,9 @@ interface BigUint64Array {
 
 interface BigUint64ArrayConstructor {
     readonly prototype: BigUint64Array;
-    new(length?: number): BigUint64Array;
-    new(array: Iterable<bigint>): BigUint64Array;
-    new(buffer: ArrayBufferLike, byteOffset?: number, length?: number): BigUint64Array;
+    new (length?: number): BigUint64Array;
+    new (array: Iterable<bigint>): BigUint64Array;
+    new (buffer: ArrayBufferLike, byteOffset?: number, length?: number): BigUint64Array;
 
     /** The size in bytes of each element in the array. */
     readonly BYTES_PER_ELEMENT: number;
@@ -673,6 +673,7 @@ interface DataView {
      * Gets the BigInt64 value at the specified byte offset from the start of the view. There is
      * no alignment constraint; multi-byte values may be fetched from any offset.
      * @param byteOffset The place in the buffer at which the value should be retrieved.
+     * @param littleEndian If false or undefined, a big-endian value should be read.
      */
     getBigInt64(byteOffset: number, littleEndian?: boolean): bigint;
 
@@ -680,6 +681,7 @@ interface DataView {
      * Gets the BigUint64 value at the specified byte offset from the start of the view. There is
      * no alignment constraint; multi-byte values may be fetched from any offset.
      * @param byteOffset The place in the buffer at which the value should be retrieved.
+     * @param littleEndian If false or undefined, a big-endian value should be read.
      */
     getBigUint64(byteOffset: number, littleEndian?: boolean): bigint;
 
@@ -687,8 +689,7 @@ interface DataView {
      * Stores a BigInt64 value at the specified byte offset from the start of the view.
      * @param byteOffset The place in the buffer at which the value should be set.
      * @param value The value to set.
-     * @param littleEndian If false or undefined, a big-endian value should be written,
-     * otherwise a little-endian value should be written.
+     * @param littleEndian If false or undefined, a big-endian value should be written.
      */
     setBigInt64(byteOffset: number, value: bigint, littleEndian?: boolean): void;
 
@@ -696,15 +697,13 @@ interface DataView {
      * Stores a BigUint64 value at the specified byte offset from the start of the view.
      * @param byteOffset The place in the buffer at which the value should be set.
      * @param value The value to set.
-     * @param littleEndian If false or undefined, a big-endian value should be written,
-     * otherwise a little-endian value should be written.
+     * @param littleEndian If false or undefined, a big-endian value should be written.
      */
     setBigUint64(byteOffset: number, value: bigint, littleEndian?: boolean): void;
 }
 
-declare namespace Intl{
+declare namespace Intl {
     interface NumberFormat {
         format(value: number | bigint): string;
-        resolvedOptions(): ResolvedNumberFormatOptions;
     }
 }
